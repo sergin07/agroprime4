@@ -3,5 +3,44 @@
 <div class="jumbotron text-center">
     <h1>Bienvenido a AgroPrime</h1>
     <p class="lead"> Aplicacion de contabilidad basica </p>
+    <H3>Tu monto actual: {{ monto_total }}</H3>
+    <ul>
+              <table class="table table-stripped table-bordered bg-white table-sm">
+            <thead>
+                <tr>
+                    <td>TIPO</td>
+                    <td>MONTO</td>
+                    <td>DESCRIPCION</td>
+                    <td>FECHA</td>
+                    <td>OPERACIONES</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movimiento in movimientos%}
+                <tr>
+                    <td> {{ movimiento.tipo }}</td>
+
+
+
+                    {% if movimiento.tipo == 'ingreso' %}
+                    <td style="color: green;"> +{{ movimiento.monto }}</td>
+                    {% else %}
+                    <td style="color: red;"> -{{ movimiento.monto }}</td>
+                    {% endif %}
+
+
+
+
+                    <td> {{ movimiento.descripcion }}</td>
+                    <td> {{ movimiento.fecha }} </td>
+                    <td>
+                        <a href="/edit/{{ movimiento.id }}" class="btn btn-secondary">edit</a>
+                        <a href="/delete/{{ movimiento.id }}" class="btn btn-danger btn-delete">delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </ul>
 </div>
 {% endblock %}

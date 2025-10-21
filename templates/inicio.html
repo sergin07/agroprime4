@@ -1,46 +1,54 @@
-{% extends "model.html" %}
+    {% extends "model.html" %}
 {% block body %}
-<div class="jumbotron text-center">
-    <h1>Bienvenido a AgroPrime</h1>
-    <p class="lead"> Aplicacion de contabilidad basica </p>
-    <H3>Tu monto actual: {{ monto_total }}</H3>
-    <ul>
-              <table class="table table-stripped table-bordered bg-white table-sm">
-            <thead>
-                <tr>
-                    <td>TIPO</td>
-                    <td>MONTO</td>
-                    <td>DESCRIPCION</td>
-                    <td>FECHA</td>
-                    <td>OPERACIONES</td>
-                </tr>
-            </thead>
-            <tbody>
-                {% for movimiento in movimientos%}
-                <tr>
-                    <td> {{ movimiento.tipo }}</td>
 
+<header class="barra">
+  <h1 class="titulo">Bienvenido a AgroPrime</h1>
+  <p class="subtitulo">Aplicación de contabilidad básica</p>
+  <h3 class="saldo">Tu monto actual: ${{ "{:,.0f}".format(monto_total) }}</h3>
+</header>
 
+<main class="contenedor">
+  <section class="tarjeta">
+    <h2 class="tarjeta__titulo">Movimientos</h2>
 
-                    {% if movimiento.tipo == 'ingreso' %}
-                    <td style="color: green;"> +{{ movimiento.monto }}</td>
-                    {% else %}
-                    <td style="color: red;"> -{{ movimiento.monto }}</td>
-                    {% endif %}
+    <div class="tabla__envoltorio">
+      <table class="tabla">
+        <thead class="tabla__encabezado">
+          <tr>
+            <th>Tipo</th>
+            <th>Monto</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+            <th>Operaciones</th>
+          </tr>
+        </thead>
+        <tbody class="tabla__cuerpo">
+          {% for movimiento in movimientos %}
+          {% set es_ingreso = (movimiento.tipo == 'ingreso') %}
+          <tr class="fila {{ 'fila--ingreso' if es_ingreso else 'fila--egreso' }}">
+            <td class="celda tipo">
+              <span class="etiqueta {{ 'etiqueta--ingreso' if es_ingreso else 'etiqueta--egreso' }}">
+                {{ movimiento.tipo | capitalize }}
+              </span>
+            </td>
 
+            <td class="celda monto {{ 'monto--positivo' if es_ingreso else 'monto--negativo' }}">
+              {{ '+' if es_ingreso else '-' }}{{ movimiento.monto }}
+            </td>
 
+            <td class="celda descripcion">{{ movimiento.descripcion }}</td>
+            <td class="celda fecha">{{ movimiento.fecha }}</td>
 
+            <td class="celda acciones">
+              <a href="/edit/{{ movimiento.id }}" class="boton boton--editar">Editar</a>
+              <a href="/delete/{{ movimiento.id }}" class="btn btn-danger btn-delete boton boton--eliminar">Eliminar</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
 
-                    <td> {{ movimiento.descripcion }}</td>
-                    <td> {{ movimiento.fecha }} </td>
-                    <td>
-                        <a href="/edit/{{ movimiento.id }}" class="btn btn-secondary">edit</a>
-                        <a href="/delete/{{ movimiento.id }}" class="btn btn-danger btn-delete">delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </ul>
-</div>
 {% endblock %}

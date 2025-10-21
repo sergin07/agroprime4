@@ -1,0 +1,10 @@
+html, body { height: 100%; margin: 0; }
+
+
+.fondo{
+    background-image:url('/static/imagenes/agricultor.webp');
+    background-size: cover;
+    background-position: center;
+    height: 100%;
+    padding: 100px;
+}

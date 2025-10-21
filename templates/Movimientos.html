@@ -1,82 +1,109 @@
 {% extends "model.html" %}
+
+
 {% block body %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Registrar Movimiento</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('movimientos') }}">
-                        <!-- Fecha -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha del movimiento</label>
-                                <input type="date" name="fecha" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Tipo de movimiento</label>
-                                <select name="tipo" class="form-select" required>
-                                    <option value="">Seleccionar tipo</option>
-                                    <option value="ingreso">Ingreso</option>
-                                    <option value="egreso">Egreso</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <!-- Monto -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Monto</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" name="monto" class="form-control" 
-                                           step="0.01" min="0.01" placeholder="0.00" required>
-                                </div>
-                            </div>
-                        </div>
+<h2 class="titulomovimiento">Registrar Movimiento</h2>
 
-                        <!-- Descripción -->
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <label class="form-label">Descripción</label>
-                                <textarea name="descripcion" class="form-control" 
-                                          rows="3" placeholder="Descripción del movimiento"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Botones -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <button type="reset" class="btn btn-secondary me-md-2">
-                                        Limpiar
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-check-circle"></i> Guardar Movimiento
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Mensajes de flash -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="mt-3">
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
+<div class="columna" style="text-align: center;">
+    <div class="setenta">
+        <div class="movimientos-container" >
+            <h1>DATOS DEL MOVIMIENTO</h1>
+            <form method="POST" action="{{ url_for('movimientos') }}">
+                <!-- Fecha -->
+                <fieldset >
+                    <div class="input">
+                        <label for="fecha">Fecha del movimiento</label>
+                        <input class="caja" type="date" id="fecha" value="{{fecha_actual}}" name="fecha" required>
                     </div>
-                {% endif %}
-            {% endwith %}
+
+                    <div class="input">
+                        <label for="tipo">Tipo de movimiento</label>
+                        <select id="tipo" class="caja" name="tipo" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="ingreso">Ingreso</option>
+                            <option value="egreso">Egreso</option>
+                        </select>
+                    </div>
+                </fieldset>
+
+                <!-- unidad -->
+                <div class="input_unis">
+                    <div>
+                        <label for="vrunidad">VR.unidad</label>
+                        <input class="caja" type="number" id="vrunidad" name="vrunidad" step="0.01" min="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="igual">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+                            <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <label for="cantidad">Cantidad</label>
+                        <input class="caja" type="number" id="cantidad" step="any"name="cantidad" value="1" min="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="igual">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+                            <path fill="#000000" d="M4 7h16v2H4V7Zm0 8h16v2H4v-2Z"/>
+                        </svg>
+                    </div>
+                        <!-- Monto -->
+                    <div class="igual" >
+                        <div class="igual" style="display: flex; flex-direction: column; position: relative;top: -58px;">
+                          <p style="margin: 0;">TOTAL</p>
+                          <span id="total" class="caja_TOTAL" 
+                             style="border: 1px solid black; border-radius: 12px; padding: 4px 8px;">
+                              0
+                           </span>
+                        </div>
+                    </div>
+                    
+
+                    <script>
+                            const vrunidad = document.getElementById("vrunidad");
+                            const cantidad = document.getElementById("cantidad");
+                            const total = document.getElementById("total");
+
+                      function calcular_total(){
+                        const a = parseFloat(vrunidad.value) || 0;
+                        const b = parseFloat(cantidad.value) || 0;
+                        total.textContent = (a * b).toFixed(2); // Formato con 2 decimales
+                        }
+    
+                        vrunidad.addEventListener("input", calcular_total);
+                        cantidad.addEventListener("input", calcular_total);
+                        
+                    </script>
+                </div>
+
+                
+                
+
+                <!-- Descripción -->
+                <div class="input">
+                    <label for="descripcion">Descripción</label>
+                    <textarea class="caja" id="descripcion" name="descripcion" rows="3" placeholder="Descripción del movimiento" required maxlength="20"></textarea>
+                </div>
+                
+                <!-- Botones -->
+                <div>
+                    <button type="reset" id="btn-reset">Limpiar</button>
+                    <button type="submit">Guardar Movimiento</button>
+                </div>
+            </form>
         </div>
+
+        <!-- Mensajes de flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div>
+            {% for category, message in messages %}
+            <div data-category="{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
     </div>
 </div>
+
 {% endblock %}

@@ -1,9 +1,0 @@
-{% extends "model.html" %}
-{% block body %}
-<h1>Reportes</h1>
-<ul class="list-group">
-    {% for articulo in articulos %}
-        <li class="list-group-item"><a href="/reportes/{{articulo.id}}">{{articulo.titulo }}: {{ articulo.contenido }}</li>
-    {% endfor %}
-</ul>
-{% endblock %}

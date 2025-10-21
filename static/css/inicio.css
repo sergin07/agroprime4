@@ -1,0 +1,227 @@
+/* ===== Base / tema ===== */
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0
+}
+
+
+/* ===== Cabecera ===== */
+.barra {
+    max-width: 1100px;
+    margin: 16px auto 8px;
+    padding: 0 12px;
+    text-align: center
+}
+
+.titulo {
+    margin: .25rem 0;
+    font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--verde-300), var(--verde-500) 40%, var(--verde-300));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: black;
+
+}
+
+.subtitulo {
+    margin: .25rem 0 .5rem;
+    color: #000000
+}
+
+.saldo {
+    margin: .25rem 0;
+    font-weight: 800
+}
+
+/* ===== Contenedor panel ===== */
+.contenedor {
+    max-width: 1100px;
+    margin: 8px auto 120px;
+    padding: 0 12px
+}
+
+.tarjeta {
+background-color: white;
+    border: 1px solid var(--borde);
+    border-radius: 18px;
+    box-shadow: var(--sombra);
+    padding: 14px;
+}
+
+.tarjeta__titulo {
+    margin: .25rem 0 12px;
+    color: #000000;
+    font-size: 1.15rem
+}
+
+/* ===== Rejilla de cuadros ===== */
+.rejilla {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.cuadro {
+    grid-column: span 6;
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .45);
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.cuadro:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, .55)
+}
+
+/* variantes por tipo */
+.cuadro--ingreso {
+    background: white
+}
+
+.cuadro--egreso {
+    background: white
+}
+
+/* encabezado del cuadro */
+.cuadro__encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+}
+
+.etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .25rem .55rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: .85rem;
+    border: 1px solid var(--borde);
+}
+
+.etiqueta--ingreso {
+    color: #91ff00;
+    background: linear-gradient(90deg, var(--verde-300), var(--verde-500))
+}
+
+.etiqueta--egreso {
+    color: red;
+    background: rgba(16, 185, 129, .12)
+}
+
+.fecha {
+    color: #000000;
+    font-size: .9rem
+}
+
+/* monto grande */
+.monto {
+    font-weight: 900;
+    font-size: 1.35rem;
+}
+
+.monto--positivo {
+    color: #00ff37
+}
+
+.monto--negativo {
+    color: red
+}
+
+/* descripción */
+.descripcion {
+    margin: 0;
+    color: #000000
+}
+
+/* acciones */
+.acciones {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-top: .25rem
+}
+
+.boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .5rem .8rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 800;
+    cursor: pointer;
+    border: 1px solid var(--borde);
+    background: rgba(9, 48, 36, .55);
+    color: #000000;
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+
+.boton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, .35);
+    filter: brightness(1.05)
+}
+
+.boton--editar {
+    background-color: green;
+    color: #ffffff;
+    border-color: rgba(13, 126, 0, 0.08)
+}
+
+.boton--eliminar {
+    background: rgb(180, 0, 0);
+    color: #ffffff;
+    border-color: rgba(255, 100, 100, .45)
+}
+
+.boton--eliminar:hover {
+    background: rgba(255, 100, 100, .18)
+}
+
+/* ===== Responsive ===== */
+@media (max-width:1080px) {
+    .rejilla {
+        grid-template-columns: repeat(6, minmax(0, 1fr))
+    }
+
+    .cuadro {
+        grid-column: span 3
+    }
+}
+
+@media (max-width:720px) {
+    .rejilla {
+        grid-template-columns: repeat(4, minmax(0, 1fr))
+    }
+
+    .cuadro {
+        grid-column: span 4
+    }
+}
+
+@media (max-width:520px) {
+    .cuadro {
+        padding: 12px
+    }
+
+    .monto {
+        font-size: 1.2rem
+    }
+
+    .boton {
+        width: 100%
+    }
+}

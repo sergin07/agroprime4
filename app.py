@@ -2,14 +2,16 @@ from flask import Flask, redirect, url_for, render_template, flash, request, url
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
+from datetime import datetime
 from functools import wraps
+
 
 app = Flask(__name__)   
 
 # Configuración de MySQL
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '2008' #thomas2009
+app.config['MYSQL_PASSWORD'] = '2008'
 app.config['MYSQL_DB'] = 'agroprime'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.secret_key = 'hola123'
@@ -45,114 +47,166 @@ def is_logged_in(f):
 
 
 @app.route('/')
+@is_logged_in
 def inicio():
+    # Obtener el user_id de la sesión actual
+    user_id = session.get('user_id')
+    
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM movimientos")
-    resul= cur.fetchall()
-    print(resul)
+    # FILTRAR movimientos solo del usuario actual
+    cur.execute("SELECT * FROM movimientos WHERE user_id = %s ORDER BY fecha DESC", (user_id,))
+    resul = cur.fetchall()
+    
+    print(f"Usuario: {session.get('name')} - Movimientos: {len(resul)}")
 
-    print(session.get('name'))
-
+    # Calcular el monto total solo de los movimientos del usuario
     monto_total = 0
     for i in resul:
-        montos_guardados = int(i['monto'])
+        montos_guardados = float(i['monto'])
         tipo = i['tipo']
         if tipo == 'ingreso':
             monto_total += montos_guardados
         else: 
             monto_total -= montos_guardados
     
-    print(monto_total)
-    cur.close
-    return render_template('inicio.html', movimientos= resul, monto_total=monto_total)
+    print(f"Monto total del usuario {session.get('name')}: {monto_total}")
+    cur.close()
+    
+    return render_template('inicio.html', movimientos=resul, monto_total=monto_total)
 
 
-
-
-
-
-
-
-
+    
 
 @app.route('/movimientos', methods=['GET','POST'])
 @is_logged_in
 def movimientos():
-    if request.method =='POST':
-            #obtener datos del formulario
-            fecha = request.form['fecha']
-            tipo = request.form['tipo']
-            monto = request.form['monto']
-            descripcion = request.form.get('descripcion')
+    if request.method == 'POST':
+        
+        # Obtener datos del formulario
+        fecha = request.form['fecha']
+        tipo = request.form['tipo']
+        vrunidad = float(request.form['vrunidad'])  # Del HTML
+        cantidad = float(request.form['cantidad'])  # Del HTML
+        descripcion = request.form.get('descripcion')
+        monto = round(vrunidad * cantidad, 2)
+        
+        cur = mysql.connection.cursor()
+        
+        # Insertar movimientos asociados al usuario actual
+        cur.execute(""" INSERT INTO movimientos (user_id, fecha, tipo, monto, descripcion)
+        VALUES (%s, %s, %s, %s, %s)
+        """, (int(session['user_id']), str(fecha), str(tipo), float(monto), str(descripcion)))
 
-            cur = mysql.connection.cursor()
-            #insertar movimientos en la bbdd
-            cur.execute(""" INSERT INTO movimientos (user_id, fecha, tipo, monto, descripcion)
-            VALUES (%s, %s, %s, %s, %s)
-            """, (int(session['user_id']), str(fecha), str(tipo), float(monto), str(descripcion, )))
+        mysql.connection.commit()
+        cur.close()
+        
+        
 
-            mysql.connection.commit()
-            cur.close()
+        
 
-            flash('Movimiento registrado exitosamente','success')
-            return redirect(url_for('movimientos'))
-
-
-    return render_template('movimientos.html')
-
-
-
-
-
+        flash('Movimiento registrado exitosamente', 'success')
+        return redirect(url_for('movimientos'))
+     
+    fecha_actual = datetime.now().strftime('%Y-%m-%d')
+    return render_template('Movimientos.html', fecha_actual=fecha_actual)
 
 
 @app.route('/edit/<id>')
+@is_logged_in
 def get_movimiento(id):
+    user_id = session.get('user_id')
+    
     cur = mysql.connection.cursor()
-    cur.execute('SELECT * FROM movimientos WHERE id = %s', (id,))
+    # Verificar que el movimiento pertenece al usuario actual
+    cur.execute('SELECT * FROM movimientos WHERE id = %s AND user_id = %s', (id, user_id))
     data = cur.fetchall()
-    return render_template('edit-movimientos.html', movimiento = data[0])
+    cur.close()
+    
+    if not data:
+        flash('No tienes permiso para editar este movimiento', 'danger')
+        return redirect(url_for('inicio'))
+    
+    return render_template('edit-movimientos.html', movimiento=data[0])
+
 
 @app.route('/update/<id>', methods=['POST'])
+@is_logged_in
 def update_movimiento(id):
+    user_id = session.get('user_id')
+    
     if request.method == 'POST':
         fecha = request.form['fecha']
         tipo = request.form['tipo']
         monto = request.form['monto']
         descripcion = request.form.get('descripcion')
-    cur=mysql.connection.cursor()
+        
+    cur = mysql.connection.cursor()
+    
+    # Actualizar solo si el movimiento pertenece al usuario
     cur.execute("""
      UPDATE movimientos
     SET fecha = %s,
         tipo = %s,
         monto = %s,
-        descripcion =%s
-    WHERE id = %s                     
-    """, (str(fecha), str(tipo), float(monto), (descripcion), id))
+        descripcion = %s
+    WHERE id = %s AND user_id = %s                     
+    """, (str(fecha), str(tipo), float(monto), descripcion, id, user_id))
+    
     mysql.connection.commit()
-    flash('movimiento actualizado satisfactoriamente')
+    cur.close()
+    
+    flash('Movimiento actualizado satisfactoriamente', 'success')
     return redirect(url_for('inicio'))
 
 
-
-
-
 @app.route('/delete/<id>')
-def delete_movimiento(id):
-    cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM movimientos WHERE id ={0}'.format(id))
-    mysql.connection.commit()
-    flash('movimiento removido satisfactoriamente')
-    return redirect (url_for('inicio'))
-
-
-
-
-
-@app.route('/reportes')
 @is_logged_in
-def reportes():
-    return render_template('reportes.html')
+def delete_movimiento(id):
+    user_id = session.get('user_id')
+    
+    cur = mysql.connection.cursor()
+    # Eliminar solo si el movimiento pertenece al usuario
+    cur.execute('DELETE FROM movimientos WHERE id = %s AND user_id = %s', (id, user_id))
+    mysql.connection.commit()
+    cur.close()
+    
+    flash('Movimiento removido satisfactoriamente', 'success')
+    return redirect(url_for('inicio'))
+
+
+@app.route('/dashboard')
+@is_logged_in
+def dashboard():
+    cur = mysql.connection.cursor()
+    user_id = session['user_id']
+    
+    print("=" * 50)
+    print(f"USER ID: {user_id}")
+    
+    cur.execute("""
+        SELECT SUM(monto) as total_amount, tipo 
+        FROM movimientos 
+        WHERE user_id = %s
+        GROUP BY tipo 
+        ORDER BY tipo
+    """, (user_id,))
+    
+    results = cur.fetchall()
+    print(f"RESULTS FROM DB: {results}")
+    
+    income_expense = []
+    for row in results:
+        amount = float(row['total_amount']) if row['total_amount'] else 0
+        income_expense.append(amount)
+    
+    print(f"PROCESSED DATA: {income_expense}")
+    print("=" * 50)
+    
+    cur.close()
+    
+    return render_template('dashboard.html',
+        income_vs_expenses=income_expense
+    )
 
 
 @app.route('/register', methods=['GET', 'POST'])    
@@ -183,8 +237,9 @@ def register():
                 flash('El email ya está registrado', 'danger')
                 return render_template('register.html', form=form)
             
-            cur.execute("INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)", 
-                        (name, email, username, password))
+            # Crear usuario con saldo inicial en 0
+            cur.execute("INSERT INTO users(name, email, username, password, saldo_actual) VALUES(%s, %s, %s, %s, %s)", 
+                        (name, email, username, password, '0'))
             
             mysql.connection.commit()
             
@@ -199,6 +254,7 @@ def register():
             cur.close()
     
     return render_template('register.html', form=form)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -215,17 +271,15 @@ def login():
         cur = mysql.connection.cursor()
         
         try:
-            
             result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
             
             if result > 0:
-
                 data = cur.fetchone()
                 password = data['password']
                 
                 # Comparar contraseñas
                 if sha256_crypt.verify(password_candidate, password):
-                    # Contraseña correcta
+                    # Contraseña correcta - Guardar datos en sesión
                     session['logged_in'] = True
                     session['username'] = username
                     session['name'] = data['name']
@@ -245,10 +299,10 @@ def login():
             return render_template('login.html', form=form, error=error)
             
         finally:
-            # Cerrar conexión SIEMPRE, incluso si hay error
             cur.close()
     
     return render_template('login.html', form=form)
+
 
 @app.route('/logout')
 @is_logged_in
@@ -257,7 +311,6 @@ def logout():
     flash('Has cerrado sesión', 'success')
     return redirect(url_for('login'))
 
+
 if __name__ == "__main__":
     app.run(debug=True)
-
-####creditos al mejor progrmador del mundo juangel alvarado herrera que vive en saravena,arauca vive al lado de la ie la frontera y estudia ahi tiene un gato siames que se llama galleto antes se llamaba galleta  vive con su mama y tiene un xbox 360 /clear####
